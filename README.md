@@ -122,4 +122,21 @@ class CustomerAdmin(admin.ModelAdmin):
         
 admin.site.register(Customer,CustomerAdmin)
 ```
-Also note another trick that you can do to concart two fields into one in Django admin. You simply create and function and give an  *obj*  as a param. The obj will then be used to get the desired fields in this case **name** and **last_name**. Also note tha in the list_diplay we then use the name of the function in this case *full_name*.  
+Also note another trick that you can do to concart two fields into one in Django admin. You simply create and function and give an  *obj*  as a param. The obj will then be used to get the desired fields in this case **name** and **last_name**. Also note that in the list_display we then use the name of the function in this case *full_name*.  
+
+## 2 Creating an API
+Now that we have our Model Ready Lets create the CRUD API.
+* First create an api app
+```cmd
+python manage.py startapp api
+```
+* Add the api module in the *settings.py* file and also add the rest_framework that we installed earlier on.
+```python
+...
+...
+    'business',
+    'rest_framework', #new here
+    'api',   #new here
+]
+```
+
