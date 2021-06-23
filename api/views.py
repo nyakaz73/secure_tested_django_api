@@ -49,7 +49,7 @@ class CustomerDetailView(APIView):
             return Response(serializer.data)
         return Response(serializer.errors,status=status.HTTP_400_BAD_REQUEST)
 
-    
+    @resource_checker(Customer)
     def delete(self,request, pk, format=None):
         customer = Customer.published.get(pk=pk)
         customer.delete()
