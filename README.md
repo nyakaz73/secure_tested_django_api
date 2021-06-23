@@ -139,8 +139,8 @@ python manage.py startapp api
     'api',   #new here
 ]
 ```
-* **URLS**
-* Now include the api app in the base *urls.py* file where there is the setting.py file.
+#### 2a API URLS
+* Now include the **api** app in the base *urls.py* file where there is the settings.py file.
 ```python
 from django.contrib import admin
 from django.urls import path, include #new here
@@ -151,7 +151,7 @@ urlpatterns = [
 ]
 ```
 
-* Finally create a *urls.py* file the api app and add the following routes.
+* Finally create a *urls.py* file the **api** app and add the following routes.
 ```python
 from django.urls import path
 from api import views as api_views
@@ -162,12 +162,12 @@ urlpatterns = [
 ]
 
 ```
-In the above snippet we have created the customers routes with views **CustomerView** and **CustomerDetailView** which we are going to create shortly.
+In the above snippet we have created the customer routes with views **CustomerView** and **CustomerDetailView** which we are going to create shortly.
 The **CustomerView** is essentially going to handle our **get all** *get* request and **save** *post* request then;
 The **CustomerDetailView** is going to handle our *get*, *put and delete* requests.
 
-#### Lets create the API Views
-Navigate to the *views.py* inside the app folder and add the following code.
+#### 2b  API Views
+Navigate to the *views.py* inside the **app** folder and add the following code. 
 ```python
 from django.shortcuts import render
 from rest_framework.views import APIView
@@ -220,10 +220,97 @@ class CustomerDetailView(APIView):
             return Response(serializer.data)
         return Response(serializer.errors,status=status.HTTP_400_BAD_REQUEST)
 
-    
+    @resource_checker(Customer)
     def delete(self,request, pk, format=None):
         customer = Customer.published.get(pk=pk)
         customer.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
         
 ```
+Now Lets break this code down
+* **CustomerView**
+As mentioned above the CustomerView is going to handle our get all request and  post request by extending the rest_framework APIView.
+Note how we are now making use of the Manager that we creating in the Customer Model.
+```python
+...
+customers = Customer.published.all()
+...
+```
+Here we are simply getting all Customer that has the status= published.
+Also note that we  have a **CustomerDetailView** which we will create shortly with **many=True** meaning Serializer has to searialize the  List of Objects.
+
+
+* **CustomerDetailView**
+Is going to handle the rest of our CRUD requests, ie *get, put and delete* requests.
+Since we are going to perform  a queryset that is going to get a specific Customer by the pk, for the rest of the requests; we need  a way of handling the model **DoesNotExist** exception which is thrown if you query against a Customer that is not in the database.
+
+* There are multiple ways of handling such a scenario , like for instance one way would be to try every request in this view, but the donwfall with this approach is the bottleneck of uncessary repetition of code.
+
+* To solve this we can make use of a python [decorator](https://www.python.org/dev/peps/pep-0318/) that we need to annoatate every function reqest which will handle the model DoesNotExist exception
+See code below
+```python
+def resource_checker(model):
+    def check_entity(fun):
+        @wraps(fun)
+        def inner_fun(*args, **kwargs):
+            try:
+                x = fun(*args, **kwargs)
+                return x
+            except model.DoesNotExist:
+                return Response({'message': 'Not Found'}, status=status.HTTP_204_NO_CONTENT)
+        return inner_fun
+    return check_entity
+```
+The above nippet checks of a Model with a given pk exists, if it does it run the requests via
+```python
+x = fun(*args, **kwargs)
+```
+Else if the resouce does not exist it the returns a Not Found exception.
+```python
+return Response({'message': 'Not Found'}, status=status.HTTP_204_NO_CONTENT)
+```
+A **decorator** is a python concept that lets you run a function within another function thus providing some abstrction in code that lets you use same code base in different scenarios or **alter the behavior of a function or a class**.
+Since we are going to pass a parameter in our decorate ie a Class Model we need some form of Factory Function that will take the param and later send it down the chain with other func params
+
+Im not going to in detail about python decorators as it is a wide concept. 
+
+#### 2c API CustomerSerializer
+Lets create CustomerSerializer class
+* Create a file called ***serializers.py*** in  the **api** folder with the following code
+
+```python
+from rest_framework import serializers
+from business.models import Customer
+
+class ChoiceField(serializers.ChoiceField):
+    def to_representation(self, obj):
+        if obj == '' and self.allow_blank:
+            return obj
+        return self._choices[obj]
+
+    def to_internal_value(self, data):
+        if data == '' and self.allow_blank:
+            return ''
+
+        for key, val in self._choices.items():
+            if val == data:
+                return key
+        self.fail('invalid_choice', input=data) 
+
+
+class CustomerSerializer(serializers.ModelSerializer):
+    full_name = serializers.SerializerMethodField()
+    gender = ChoiceField(Customer.GENDER_CHOICES)
+
+    def get_full_name(self,obj):
+        return "{} {}".format(obj.name, obj.last_name)
+    
+    class Meta:
+        model = Customer
+        fields = ['id', 'full_name','title', 'gender', 'created']
+```
+* To create a rest serializer class you need to extend the ModelSerializer base.
+* To return or concat fields like we did in the admin.py file you need to use ***SerializerMethodField*** class and with a **get** function that returns the desired result as above.
+* Notice that the choices fields are not automatically serialized by the rest_framework, so you need a way to manually serialize it using ***ChoiceField*** serializers class.
+
+To learn more about the ***ChoiceField*** class implemented in the above snippet see StackOverflow solution [here](https://stackoverflow.com/questions/28945327/django-rest-framework-with-choicefield)
