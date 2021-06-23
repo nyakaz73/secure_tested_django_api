@@ -130,7 +130,7 @@ Now that we have our Model Ready Lets create the CRUD API.
 ```cmd
 python manage.py startapp api
 ```
-* Add the api module in the *settings.py* file and also add the rest_framework that we installed earlier on.
+* Add the api module in the *settings.py* file and also add the **rest_framework** that we installed earlier on.
 ```python
 ...
 ...
@@ -139,4 +139,91 @@ python manage.py startapp api
     'api',   #new here
 ]
 ```
+* **URLS**
+* Now include the api app in the base *urls.py* file where there is the setting.py file.
+```python
+from django.contrib import admin
+from django.urls import path, include #new here
 
+urlpatterns = [
+    path('admin/', admin.site.urls),
+    path('api/', include('api.urls')), #new here
+]
+```
+
+* Finally create a *urls.py* file the api app and add the following routes.
+```python
+from django.urls import path
+from api import views as api_views
+
+urlpatterns = [
+    path('customers/', api_views.CustomerView.as_view(), name="customer"),
+    path('customers/<int:pk>', api_views.CustomerDetailView.as_view(), name="customer-detail")
+]
+
+```
+In the above snippet we have created the customers routes with views **CustomerView** and **CustomerDetailView** which we are going to create shortly.
+The **CustomerView** is essentially going to handle our **get all** *get* request and **save** *post* request then;
+The **CustomerDetailView** is going to handle our *get*, *put and delete* requests.
+
+#### Lets create the API Views
+Navigate to the *views.py* inside the app folder and add the following code.
+```python
+from django.shortcuts import render
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from business.models import Customer
+from api.serializers import CustomerSerializer
+from rest_framework import status
+from django.http import Http404
+from functools import wraps
+class CustomerView(APIView):
+    def get(self, request, format=None):
+        customers = Customer.published.all()
+        serializer = CustomerSerializer(customers, many=True)
+        return Response(serializer.data)
+    
+    def post(self,request,format=None):
+        serializer = CustomerSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data,status=status.HTTP_201_CREATED)
+        return Response(serializer.errors,status=status.HTTP_400_BAD_REQUEST)
+
+
+def resource_checker(model):
+    def check_entity(fun):
+        @wraps(fun)
+        def inner_fun(*args, **kwargs):
+            try:
+                x = fun(*args, **kwargs)
+                return x
+            except model.DoesNotExist:
+                return Response({'message': 'Not Found'}, status=status.HTTP_204_NO_CONTENT)
+        return inner_fun
+    return check_entity
+
+class CustomerDetailView(APIView):
+    
+    @resource_checker(Customer)
+    def get(self,request,pk, format=None):
+        customer = Customer.published.get(pk=pk)
+        serializer = CustomerSerializer(customer)
+        return Response(serializer.data)
+    
+    @resource_checker(Customer)
+    def put(self,request,pk, format=None):
+        customer = Customer.published.get(pk=pk)
+        serializer = CustomerSerializer(customer,data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors,status=status.HTTP_400_BAD_REQUEST)
+
+    
+    def delete(self,request, pk, format=None):
+        customer = Customer.published.get(pk=pk)
+        customer.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+        
+```
