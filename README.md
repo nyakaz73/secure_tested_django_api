@@ -50,7 +50,7 @@ INSTALLED_APPS = [
 ```
 
 ### 1a. Customer Model
-Now its probably time to create our model. Navigate to the business app and in the *models.py* file create a Customer Classas follows:
+Now its probably time to create our model. Navigate to the business app and in the *models.py* file create a Customer Class follows:
 ```python
 from django.db import models
 from django.utils import timezone
@@ -89,4 +89,37 @@ class Customer(models.Model):
         return "{} {}".format(self.name,self.last_name)
 
 ```
+You will probalby notice that we have an additional *PublishedManager class*, nothnig to worry about :). Now Django by default uses a Manager with the name **objects** to every Django model class. 
 
+So if you want to create your own custom manager,you can archeve this by extending the base Manager class and add the field in your model in this case the **pubished** field.
+```python
+class PublishedManager(models.Manager):
+    def get_queryset(self):
+        return super(PublishedManager, self).get_queryset().filter(status='published')
+```
+So what the manager does is to simply run a query that returns the Model data(in our case Customers) where status=published.
+Therefore when we query this model in the future we will be doing something like this:
+```python
+customers = Customer.published.all()
+```
+Istead of
+```python
+customers = Customer.objects.filter(status='published')
+```
+
+### 1b Registering the Model in Django Admin
+To register the Customer model in admin
+```python
+from django.contrib import admin
+from .models import Customer
+
+class CustomerAdmin(admin.ModelAdmin):
+    list_display = ('title', 'full_name','gender', 'created_by', 'created',)
+    readonly_fields = ('created', )
+
+    def full_name(self, obj):
+        return obj.name + " " +obj.last_name
+        
+admin.site.register(Customer,CustomerAdmin)
+```
+Also note another trick that you can do to concart two fields into one in Django admin. You simply create and function and give an  *obj*  as a param. The obj will then be used to get the desired fields in this case **name** and **last_name**. Also note tha in the list_diplay we then use the name of the function in this case *full_name*.  
