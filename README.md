@@ -303,6 +303,6 @@ You can even go ahead and test with postman to see if the application is behavin
 
 ##### Examples
 POST request
-<img src="https://github.com/nyakaz73/secure_tested_django_api/raw/master/getrequests.png" width="100%" height=auto />
+<img src="https://github.com/nyakaz73/secure_tested_django_api/raw/master/getrequestz.png" width="100%" height=auto />
 
 ## 2 SECURING THE API
