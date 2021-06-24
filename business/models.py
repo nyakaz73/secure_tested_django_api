@@ -24,7 +24,7 @@ class Customer(models.Model):
     created = models.DateTimeField(default=timezone.now)
     status = models.CharField(
         max_length=10, choices=STATUS_CHOICES, default='draft')
-
+    objects = models.Manager()
     published = PublishedManager()
 
     class Meta:

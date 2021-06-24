@@ -6,7 +6,7 @@ You are also going to learn how to write unit tests for your Django API using [A
 
 ### Show some :heart: and :star: the repo to support the project 
 
-## 1. Creating the API
+## 1. CREATING THE API
 
 In this section im assuming you have your virtual environment setup and ready to go. If not; you can install [virtualenv](https://virtualenv.pypa.io/en/latest/installation.html) or alternatively [pipenv](https://pypi.org/project/pipenv/) unto you machine.
 
@@ -79,6 +79,7 @@ class Customer(models.Model):
     status = models.CharField(
         max_length=10, choices=STATUS_CHOICES, default='draft')
 
+    objects = models.Manager()
     published = PublishedManager()
 
     class Meta:
@@ -91,13 +92,13 @@ class Customer(models.Model):
 ```
 You will probalby notice that we have an additional *PublishedManager class*, nothnig to worry about :). Now Django by default uses a Manager with the name **objects** to every Django model class. 
 
-So if you want to create your own custom manager,you can archeve this by extending the base Manager class and add the field in your model in this case the **pubished** field.
+So if you want to create your own custom manager,you can archiexve this by extending the base Manager class and add the field in your model in this case the **pubished** field.
 ```python
 class PublishedManager(models.Manager):
     def get_queryset(self):
         return super(PublishedManager, self).get_queryset().filter(status='published')
 ```
-So what the manager does is to simply run a query that returns the Model data(in our case Customers) where status=published.
+So what this manager does is to simply run a query that returns the Model data(in our case Customers) where the status=published.
 Therefore when we query this model in the future we will be doing something like this:
 ```python
 customers = Customer.published.all()
@@ -122,9 +123,9 @@ class CustomerAdmin(admin.ModelAdmin):
         
 admin.site.register(Customer,CustomerAdmin)
 ```
-Also note another trick that you can do to concart two fields into one in Django admin. You simply create and function and give an  *obj*  as a param. The obj will then be used to get the desired fields in this case **name** and **last_name**. Also note that in the list_display we then use the name of the function in this case *full_name*.  
+Also note another trick that you can do to concat two fields in Django admin. You simply create a function and give an  *obj*  as a param. The obj will then be used to get the desired fields in this case **name** and **last_name**. Also note that in the list_display tuple we then use the name of the function in this case *full_name*.  
 
-## 2 Creating an API
+### 1c CRUD API
 Now that we have our Model Ready Lets create the CRUD API.
 * First create an api app
 ```cmd
@@ -139,7 +140,7 @@ python manage.py startapp api
     'api',   #new here
 ]
 ```
-#### 2a API URLS
+#### 1c1 API URLS
 * Now include the **api** app in the base *urls.py* file where there is the settings.py file.
 ```python
 from django.contrib import admin
@@ -166,7 +167,7 @@ In the above snippet we have created the customer routes with views **CustomerVi
 The **CustomerView** is essentially going to handle our **get all** *get* request and **save** *post* request then;
 The **CustomerDetailView** is going to handle our *get*, *put and delete* requests.
 
-#### 2b  API Views
+#### 1c2  API Views
 Navigate to the *views.py* inside the **app** folder and add the following code. 
 ```python
 from django.shortcuts import render
@@ -236,17 +237,17 @@ Note how we are now making use of the Manager that we creating in the Customer M
 customers = Customer.published.all()
 ...
 ```
-Here we are simply getting all Customer that has the status= published.
-Also note that we  have a **CustomerDetailView** which we will create shortly with **many=True** meaning Serializer has to searialize the  List of Objects.
+Here we are simply getting all Customers that has the status= published.
+Also note that we  have a **CustomerSerializer** which we will create shortly with **many=True** meaning Serializer has to searialize the  List of Objects.
 
 
 * **CustomerDetailView**
-Is going to handle the rest of our CRUD requests, ie *get, put and delete* requests.
+Is going to handle the rest of our CRUD request operations, ie *get, put and delete* requests.
 Since we are going to perform  a queryset that is going to get a specific Customer by the pk, for the rest of the requests; we need  a way of handling the model **DoesNotExist** exception which is thrown if you query against a Customer that is not in the database.
 
-* There are multiple ways of handling such a scenario , like for instance one way would be to try every request in this view, but the donwfall with this approach is the bottleneck of uncessary repetition of code.
+* There are multiple ways of handling such a scenario , like for instance one way would be to *try catch* every request in this view, but the donwfall with this approach is the bottleneck of uncessary repetition of code.
 
-* To solve this we can make use of a python [decorator](https://www.python.org/dev/peps/pep-0318/) that we need to annoatate every function reqest which will handle the model DoesNotExist exception
+* To solve this we can make use of a python [decorator](https://www.python.org/dev/peps/pep-0318/) pattern that lets you annoatate every function request which will handle the model DoesNotExist exception.
 See code below
 ```python
 def resource_checker(model):
@@ -261,11 +262,11 @@ def resource_checker(model):
         return inner_fun
     return check_entity
 ```
-The above nippet checks of a Model with a given pk exists, if it does it run the requests via
+The above nippet checks of a Model with a given pk exists, if it does it runs the request via
 ```python
 x = fun(*args, **kwargs)
 ```
-Else if the resouce does not exist it the returns a Not Found exception.
+Else if the resource does not exist it then returns a Not Found exception.
 ```python
 return Response({'message': 'Not Found'}, status=status.HTTP_204_NO_CONTENT)
 ```
@@ -274,7 +275,7 @@ Since we are going to pass a parameter in our decorate ie a Class Model we need 
 
 Im not going to in detail about python decorators as it is a wide concept. 
 
-#### 2c API CustomerSerializer
+#### 1c3 API CustomerSerializer
 Lets create CustomerSerializer class
 * Create a file called ***serializers.py*** in  the **api** folder with the following code
 
@@ -282,35 +283,26 @@ Lets create CustomerSerializer class
 from rest_framework import serializers
 from business.models import Customer
 
-class ChoiceField(serializers.ChoiceField):
-    def to_representation(self, obj):
-        if obj == '' and self.allow_blank:
-            return obj
-        return self._choices[obj]
-
-    def to_internal_value(self, data):
-        if data == '' and self.allow_blank:
-            return ''
-
-        for key, val in self._choices.items():
-            if val == data:
-                return key
-        self.fail('invalid_choice', input=data) 
-
-
 class CustomerSerializer(serializers.ModelSerializer):
-    full_name = serializers.SerializerMethodField()
-    gender = ChoiceField(Customer.GENDER_CHOICES)
-
-    def get_full_name(self,obj):
-        return "{} {}".format(obj.name, obj.last_name)
-    
     class Meta:
         model = Customer
-        fields = ['id', 'full_name','title', 'gender', 'created']
+        fields = '__all__' 
+        
 ```
 * To create a rest serializer class you need to extend the ModelSerializer base.
-* To return or concat fields like we did in the admin.py file you need to use ***SerializerMethodField*** class and with a **get** function that returns the desired result as above.
-* Notice that the choices fields are not automatically serialized by the rest_framework, so you need a way to manually serialize it using ***ChoiceField*** serializers class.
 
-To learn more about the ***ChoiceField*** class implemented in the above snippet see StackOverflow solution [here](https://stackoverflow.com/questions/28945327/django-rest-framework-with-choicefield)
+
+#### 1c4 Running app
+From this stage everything should be fine now you can go a ahead and run your migrations.
+```cmd
+python manage.py makemigrations 
+python manage.py migrate
+```
+You can even go ahead and test with postman to see if the application is behaving as expected.
+* **Note** we will write some unit tests in the last section of this tutorial so stay tuned :)
+
+##### Examples
+POST request
+<img src="https://github.com/nyakaz73/secure_tested_django_api/raw/master/getrequests.png" width="100%" height=auto />
+
+## 2 SECURING THE API
