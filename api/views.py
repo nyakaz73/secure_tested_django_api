@@ -6,7 +6,9 @@ from api.serializers import CustomerSerializer
 from rest_framework import status
 from django.http import Http404
 from functools import wraps
+from rest_framework.permissions import IsAuthenticated
 class CustomerView(APIView):
+    permission_classes = (IsAuthenticated,)
     def get(self, request, format=None):
         customers = Customer.published.all()
         serializer = CustomerSerializer(customers, many=True)
@@ -35,7 +37,7 @@ def resource_checker(model):
     return check_entity
 
 class CustomerDetailView(APIView):
-    
+    permission_classes = (IsAuthenticated,)
     @resource_checker(Customer)
     def get(self,request,pk, format=None):
         customer = Customer.published.get(pk=pk)
