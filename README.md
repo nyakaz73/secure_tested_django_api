@@ -411,7 +411,16 @@ urlpatterns = [
 ]
 ```
 Now the client should be a be able to make a post request to ***/api/api-token-auth*** to obtain the Authorization token:
+
+```cmd
+curl -d "username=admin&password=admin12#" -X POST http://localhost:8000/api/api-token-auth/
+```
 <img src="https://github.com/nyakaz73/secure_tested_django_api/raw/master/userpass.png" width="100%" height=auto />
+
+```cmd
+{"token":"73d29cb34e8a972741462fa3022935e43c18a247"}
+```
+* Now at this point the client has succssfully obtained the token,it now up to them to save it in **localStorage**,or **sessionCookies** depending with framework they are using.
 
 
 
