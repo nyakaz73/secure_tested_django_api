@@ -294,10 +294,14 @@ class CustomerSerializer(serializers.ModelSerializer):
 
 #### 1c4 Running app
 From this stage everything should be fine now you can go a ahead and run your migrations.
+* Also remember to create a **superuser**
+
 ```cmd
 python manage.py makemigrations 
 python manage.py migrate
+python manage.py createsuperuser
 ```
+
 You can even go ahead and test with postman to see if the application is behaving as expected.
 * **Note** we will write some unit tests in the last section of this tutorial so stay tuned :)
 
@@ -306,3 +310,31 @@ POST request
 <img src="https://github.com/nyakaz73/secure_tested_django_api/raw/master/getrequestz.png" width="100%" height=auto />
 
 ## 2 SECURING THE API
+In this section we are going to use djangorestframework and djangorestframework_simplejwt that we installed earlier to secure our end points.
+
+Go to the **api/views.py** file and add the permission classes as below:
+```python
+...
+from rest_framework.permissions import IsAuthenticated  #new here
+class CustomerView(APIView):
+    permission_classes = (IsAuthenticated,) #new here
+    def get(self, request, format=None):
+        customers = Customer.published.all()
+        serializer = CustomerSerializer(customers, many=True)
+        return Response(serializer.data)
+    ...
+    ...
+...
+...
+class CustomerDetailView(APIView):
+    permission_classes = (IsAuthenticated,)#new here
+    @resource_checker(Customer)
+    ...
+    ...
+```
+At this stage both of your views should be protected if you try to hit one of the end points eg get customer
+<img src="https://github.com/nyakaz73/secure_tested_django_api/raw/master/terminalcurl.png" width="100%" height=auto />
+You probably notice you are now getting a HTTP 403 Forbidden error, lets now implement the token authentication so that we will be able to hit our end points.
+
+
+
