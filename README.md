@@ -332,9 +332,65 @@ class CustomerDetailView(APIView):
     ...
     ...
 ```
-At this stage both of your views should be protected if you try to hit one of the end points eg get customer
+At this stage both of your views should be protected if you try to hit one of the end points eg get /customers 
 <img src="https://github.com/nyakaz73/secure_tested_django_api/raw/master/terminalcurl.png" width="100%" height=auto />
 You probably notice you are now getting a HTTP 403 Forbidden error, lets now implement the token authentication so that we will be able to hit our end points.
+
+### 2a REST Token Authentication
+The [djangorestframework](https://www.django-rest-framework.org/) comes with a token based mechanism for authenticating authorising access to secured end point.
+
+Lets start by adding a couple of configurations to the **settings.py** file.
+* Add **rest_framework.authtoken** to **INSTALLED_APPS** and **TokenAuthentication** to **REST_FRAMEWORK**.
+```python
+...
+INSTALLED_APPS = [
+    'django.contrib.admin',
+    'django.contrib.auth',
+    'django.contrib.contenttypes',
+    'django.contrib.sessions',
+    'django.contrib.messages',
+    'django.contrib.staticfiles',
+    'business',
+    'rest_framework',
+    'api',
+    'rest_framework.authtoken', #new here
+]
+
+REST_FRAMEWORK = {           #new here
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework.authentication.TokenAuthentication', 
+    ],
+}
+...
+```
+After adding the configurations make sure you migrate to apply the **authtoken** tables.
+```cmd
+python manage.py migrate
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
