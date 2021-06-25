@@ -364,6 +364,7 @@ REST_FRAMEWORK = {           #new here
 ...
 ```
 After adding the configurations make sure you migrate to apply the **authtoken** tables.
+
 ```cmd
 python manage.py migrate
 ```
@@ -371,16 +372,19 @@ python manage.py migrate
 #### Generate Token
 Now to  make successful requests we need to pass an **Authorization Header** to our request with a **Token**.
 * To generate a token we need an account that we created earlier if not just quickly create one:
+
 ```cmd
 python manage.py createsuper --username admin --email tafadzwalnyamukapa@gmail.com
 ```
 * You can now generate your token by running the django **drf_create_token** command:
 <img src="https://github.com/nyakaz73/secure_tested_django_api/raw/master/tokengen.png" width="100%" height=auto />
 You should now be able to see a string like this
+
 ```cmd
 Generated token 73d29cb34e8a972741462fa3022935e43c18a247 for user admin
 ```
 * Now lets run the get /customers request that we tried earlier on with curl:
+
 ```cmd
 curl http://localhost:8000/api/customers/ -H 'Authorization: Token 73d29cb34e8a972741462fa3022935e43c18a247' | json_pp
 ```
