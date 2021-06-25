@@ -336,7 +336,7 @@ At this stage both of your views should be protected if you try to hit one of th
 <img src="https://github.com/nyakaz73/secure_tested_django_api/raw/master/terminalcurl.png" width="100%" height=auto />
 You probably notice you are now getting a HTTP 403 Forbidden error, lets now implement the token authentication so that we will be able to hit our end points.
 
-### 2a REST Token Authentication
+### 2a REST TokenAuthentication
 The [djangorestframework](https://www.django-rest-framework.org/) comes with a token based mechanism for authenticating authorising access to secured end point.
 
 Lets start by adding a couple of configurations to the **settings.py** file.
@@ -389,17 +389,29 @@ Generated token 73d29cb34e8a972741462fa3022935e43c18a247 for user admin
 curl http://localhost:8000/api/customers/ -H 'Authorization: Token 73d29cb34e8a972741462fa3022935e43c18a247' | json_pp
 ```
 <img src="https://github.com/nyakaz73/secure_tested_django_api/raw/master/customerreq.png" width="100%" height=auto />
-Now we have succssffully retrieved our list of customers. 
+Now we have successfully retrieved our list of customers. 
 
 * **NB** Note that you need to pass the token with a Token value in the Authorization Header
 
+Now this works just fine but if a client want to be able to get the token and run the exposed secured end points ,there should be a way of doing that. Not to worry *djangorestframework* comes with a helper end point that should let the client provide their credentials ie **username and password** and make a **POST** request in order to retrieve the token.
+
+We are going to use **obtain_auth_token** view to archieve the above scenario.
 
 
-
-
-
-
-
+#### Client Requesting Token
+Navigate to  **api/urls.py** file and add the following route:
+```python
+from django.urls import path
+from api import views as api_views
+from rest_framework.authtoken import views # new here
+urlpatterns = [
+    path('customers/', api_views.CustomerView.as_view(), name="customer"),
+    path('customers/<int:pk>/', api_views.CustomerDetailView.as_view(), name="customer-detail"),
+    path('api-token-auth/', views.obtain_auth_token), #new here
+]
+```
+Now the client should be a be able to make a post request to ***/api/api-token-auth*** to obtain the Authorization token:
+<img src="https://github.com/nyakaz73/secure_tested_django_api/raw/master/userpass.png" width="100%" height=auto />
 
 
 
