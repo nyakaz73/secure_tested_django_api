@@ -6,7 +6,7 @@ You are also going to learn how to write unit tests for your Django API using [A
 
 ### Show some :heart: and :star: the repo to support the project 
 
-## 1. CREATING THE API
+## 1. CREATING THE REST API
 
 In this section im assuming you have your virtual environment setup and ready to go. If not; you can install [virtualenv](https://virtualenv.pypa.io/en/latest/installation.html) or alternatively [pipenv](https://pypi.org/project/pipenv/) unto you machine.
 
@@ -588,3 +588,4 @@ SIMPLE_JWT = {
 ```
 
 ## 3. REST API UNIT TESTING
+
