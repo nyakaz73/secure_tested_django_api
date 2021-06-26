@@ -1,6 +1,6 @@
 # Creating a Secure and well Tested Django RestFUL API
 
-In this tutorial you are going to learn how you can create a secure Django API using [djangorestframework](https://www.django-rest-framework.org/) and [djangorestframework_simplejwt](https://django-rest-framework-simplejwt.readthedocs.io/en/latest/).
+In this tutorial you are going to learn how you can create a secure Django API using [djangorestframework](https://www.django-rest-framework.org/) and [djangorestframework-simplejwt](https://django-rest-framework-simplejwt.readthedocs.io/en/latest/).
 You are also going to learn how to write unit tests for your Django API using [APIRequestFactory](). 
 
 
@@ -23,7 +23,7 @@ django-admin startproject secure_tesed_django_api
 We need to install 
 ```cmd
 pip install djangorestframework
-pip install djangorestframework_jwt
+pip install djangorestframework-simplejwt
 ```
 
 Now that we have our setup out of the way lets jump into the application. Navigate into your project root folder where there is the *manage.py* file.
@@ -411,20 +411,26 @@ urlpatterns = [
 ]
 ```
 Now the client should be a be able to make a post request to ***/api/api-token-auth*** to obtain the Authorization token:
+Request:
 
 ```cmd
 curl -d "username=admin&password=admin12#" -X POST http://localhost:8000/api/api-token-auth/
 ```
 <img src="https://github.com/nyakaz73/secure_tested_django_api/raw/master/userpass.png" width="100%" height=auto />
+Response:
 
 ```cmd
 {"token":"73d29cb34e8a972741462fa3022935e43c18a247"}
 ```
-* Now at this point the client has succssfully obtained the token,it now up to them to save it in **localStorage**,or **sessionCookies** depending with framework they are using.
+
+* Now at this point the client has succssfully obtained the token,its now up to them to save it in **localStorage**,or **sessionCookies** or any other state manager, in order to make the rest of the requests.
 
 
+### 2b JWT Authorization and Iformation Exchange
+Up to this point we have been using the REST Token for,authorization, while this works fine, there is another exellent way that we can use to archive this that is more secure when transimitting information between two parties ie **JWT (Json Web Token)**.
+This information can be verified and trusted because it is digitally signed. JWTs can be signed using a secret (with the **HMAC** algorithm) or a ***public/private key pair*** using **RSA** or **ECDSA**.
 
-
+### JSON Web Token structure?
 
 
 
