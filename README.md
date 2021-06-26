@@ -526,19 +526,28 @@ curl http://localhost:8000/api/customers/ -H 'Authorization: Bearer eyJ0eXAiOiJK
 
 <img src="https://github.com/nyakaz73/secure_tested_django_api/raw/master/jwtreq.png" width="100%" height=auto />
 
-Response:
+* The access token by default is valid for **5 minutes** . After the expiry time has elapsed you cant use the same token else you will get an "Token is invalid or expired".
 ```json
-[
-   {
-      "created" : "2021-06-24T17:03:42.810528Z",
-      "last_name" : "Salamanka",
-      "gender" : "F",
-      "name" : "Jane",
-      "title" : "Mrs",
-      "created_by" : 1,
-      "status" : "published",
-      "id" : 1
-   }
-]
+{
+   "code" : "token_not_valid",
+   "messages" : [
+      {
+         "token_class" : "AccessToken",
+         "token_type" : "access",
+         "message" : "Token is invalid or expired"
+      }
+   ],
+   "detail" : "Given token not valid for any token type"
+}
 ```
+* To get a new access token you need to make a POST request with refresh token as data  **/api/token/refresh/**,  ***TokenRefreshView***  
+* The refresh token is valid for 24HRS.
+```cmd
+curl \
+  -X POST \
+  -H "Content-Type: application/json" \
+  -d '{"refresh":"eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTYyNDc4NzI2MywianRpIjoiM2Q0NzdhZmZiOGFhNDRhZjkzMmJhZDI0NjlhNmYwZWYiLCJ1c2VyX2lkIjoxfQ.s4rOL75ddLGCFnLt38Kwa3Du1O-j5Z7YC0cx0aetW4Q"}' \
+  http://localhost:8000/api/token/refresh/
+```
+<img src="https://github.com/nyakaz73/secure_tested_django_api/raw/master/refresh.png" width="100%" height=auto />
 
