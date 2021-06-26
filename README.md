@@ -427,11 +427,17 @@ Response:
 
 
 ### 2b JWT Authorization and Iformation Exchange
-Up to this point we have been using the REST Token for,authorization, while this works fine, there is another exellent way that we can use to archive this that is more secure when transimitting information between two parties ie **JWT (Json Web Token)**.
-This information can be verified and trusted because it is digitally signed. JWTs can be signed using a secret (with the **HMAC** algorithm) or a ***public/private key pair*** using **RSA** or **ECDSA**.
+* Up to this point we have been using the REST Token for,authorization, while this works fine, there is another exellent way that we can use to archive this that is more secure when transimitting information between two parties ie **JWT (Json Web Token)**.
+* This information can be verified and trusted because it is digitally signed. JWTs can be signed using a secret (with the **HMAC** algorithm) or a ***public/private key pair*** using **RSA** or **ECDSA**.
 
 ### JSON Web Token structure?
-
+* The JWT consits of a ***Header.Payload.Signature*** in that order.
+```cmd
+xxxx.yyyy.zzzz
+```
+```cmd
+eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX3BrIjoxLCJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiY29sZF9zdHVmZiI6IuKYgyIsImV4cCI6MTIzNDU2LCJqdGkiOiJmZDJmOWQ1ZTFhN2M0MmU4OTQ5MzVlMzYyYmNhOGJjYSJ9.NHlztMGER7UADHZJlxNG0WSi22a2KaYSfd1S-AuT7lU
+```
 
 
 
