@@ -499,9 +499,9 @@ urlpatterns = [
 ]
 
 ```
-#### Obtin JWT Token
+#### Obtain JWT Token
 
-* To obtain the token you need to make a *POST* request to the ***/api/token*** end point on the **TokenObtainPairView**:
+* To obtain the token you need to make a *POST* request to the ***/api/token/*** end point on the **TokenObtainPairView**:
 Request:
 
 ```cmd
@@ -511,12 +511,34 @@ Response:
 
 ```json
 {
-   "refresh" : "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTYyNDc4NjI3NSwianRpIjoiNDllYTc3YWIxMDk0NDA2ZWI0YzgwOWQ2NzRmMTE1MWQiLCJ1c2VyX2lkIjoxfQ.XyXlT9LWM6gAiJ3t0nO5CaOr0rBiEHGYk4Ql4zzbYz8",
-   "access" : "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNjI0NzAwMTc1LCJqdGkiOiI5N2RiYWU3MWI1YWQ0NmUzOTc2N2I5OWYyOWI1MjliNiIsInVzZXJfaWQiOjF9.Ufl_mUY_DZ3SNd_YH3KexfsMCT3jMUkerwAqK-7EyjY"
+   "access" : "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNjI0NzAxMzY3LCJqdGkiOiIwNmMyNjU0NjQyOWU0MThkODUzYzljZDViOTUyYmYyZSIsInVzZXJfaWQiOjF9.nW_bq87ob0PT5vm8uQ4ZsczO5jIZxtD6XTb1vQdz7_w",
+   "refresh" : "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTYyNDc4NzI2MywianRpIjoiM2Q0NzdhZmZiOGFhNDRhZjkzMmJhZDI0NjlhNmYwZWYiLCJ1c2VyX2lkIjoxfQ.s4rOL75ddLGCFnLt38Kwa3Du1O-j5Z7YC0cx0aetW4Q"
 }
 ```
 
+* You can notice that in our response we got the **access** and **referesh** tokens. 
+* We are going to access the secured endpoint eg ***/api/customers/*** by using rhe aceess token. 
 
+```cmd
+curl http://localhost:8000/api/customers/ -H 'Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNjI0NzAxMzY3LCJqdGkiOiIwNmMyNjU0NjQyOWU0MThkODUzYzljZDViOTUyYmYyZSIsInVzZXJfaWQiOjF9.nW_bq87ob0PT5vm8uQ4ZsczO5jIZxtD6XTb1vQdz7_w' | json_pp
+```
+* **NB** Notice that we have used **Bearer** keyword instead of *Token* in our request Authorization Header.
 
+<img src="https://github.com/nyakaz73/secure_tested_django_api/raw/master/jwtreq.png" width="100%" height=auto />
 
+Response:
+```json
+[
+   {
+      "created" : "2021-06-24T17:03:42.810528Z",
+      "last_name" : "Salamanka",
+      "gender" : "F",
+      "name" : "Jane",
+      "title" : "Mrs",
+      "created_by" : 1,
+      "status" : "published",
+      "id" : 1
+   }
+]
+```
 
