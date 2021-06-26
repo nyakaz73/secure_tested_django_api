@@ -435,16 +435,86 @@ Response:
 ```cmd
 xxxx.yyyy.zzzz
 ```
+Simple JWT:
 ```cmd
 eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX3BrIjoxLCJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiY29sZF9zdHVmZiI6IuKYgyIsImV4cCI6MTIzNDU2LCJqdGkiOiJmZDJmOWQ1ZTFhN2M0MmU4OTQ5MzVlMzYyYmNhOGJjYSJ9.NHlztMGER7UADHZJlxNG0WSi22a2KaYSfd1S-AuT7lU
 ```
 
+#### Header
+* The header typically consists of two parts: the type of the token, which is JWT, and the signing algorithm being used, such as HMAC SHA256 or RSA.
+```json
+{
+  "alg": "HS256",
+  "typ": "JWT"
+}
+```
+#### Payload
+* The second part of the token is the payload, which contains the claims. Claims are statements about an entity (typically, the user) and additional data. There are three types of claims: registered, public, and private claims.
+```json
+"token_type": "access",
+  "exp": 1543828431,
+  "jti": "7f5997b7150d46579dc2b49167097e7b",
+  "user_id": 5cc
+```
+#### Signature
 
+* To create the signature part you have to take the encoded header, the encoded payload, a secret, the algorithm specified in the header, and sign that.
 
+```json
+HMACSHA256(
+  base64UrlEncode(header) + "." +
+  base64UrlEncode(payload),
+  secret)
+```
 
+* To get started with djangorestframework-simplejwt
 
+Navigate to ***settings.py***, add **rest_framework_simplejwt.authentication.JWTAuthentication** to the list of authentication classes:
 
+```python
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework.authentication.TokenAuthentication', 
+        'rest_framework_simplejwt.authentication.JWTAuthentication', #new here
+    ],
+}
+```
 
+* Also, in **api/urls.py** file include routes for Simple JWT’s ***TokenObtainPairView*** and ***TokenRefreshView*** views:
+
+```python
+from django.urls import path
+from api import views as api_views
+from rest_framework.authtoken import views
+from rest_framework_simplejwt.views import ( #new her
+    TokenObtainPairView,
+    TokenRefreshView,
+)
+urlpatterns = [
+    path('customers/', api_views.CustomerView.as_view(), name="customer"),
+    path('customers/<int:pk>/', api_views.CustomerDetailView.as_view(), name="customer-detail"),
+    path('api-token-auth/', views.obtain_auth_token),
+    path('token/', TokenObtainPairView.as_view(), name='token_obtain_pair'), #new here
+    path('token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),  #new here
+]
+
+```
+#### Obtin JWT Token
+
+* To obtain the token you need to make a *POST* request to the ***/api/token*** end point on the **TokenObtainPairView**:
+Request:
+
+```cmd
+curl -X POST -H "Content-Type: application/json" -d '{"username": "admin", "password": "admin123#"}' http://localhost:8000/api/token/
+```
+Response:
+
+```json
+{
+   "refresh" : "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTYyNDc4NjI3NSwianRpIjoiNDllYTc3YWIxMDk0NDA2ZWI0YzgwOWQ2NzRmMTE1MWQiLCJ1c2VyX2lkIjoxfQ.XyXlT9LWM6gAiJ3t0nO5CaOr0rBiEHGYk4Ql4zzbYz8",
+   "access" : "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNjI0NzAwMTc1LCJqdGkiOiI5N2RiYWU3MWI1YWQ0NmUzOTc2N2I5OWYyOWI1MjliNiIsInVzZXJfaWQiOjF9.Ufl_mUY_DZ3SNd_YH3KexfsMCT3jMUkerwAqK-7EyjY"
+}
+```
 
 
 
