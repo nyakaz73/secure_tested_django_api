@@ -1,11 +1,11 @@
 from django.urls import path, reverse, include, resolve
 from django.test import SimpleTestCase
 from api.views import CustomerView
-"""from rest_framework.test import APITestCase, APIClient
+from rest_framework.test import APITestCase, APIClient
 from rest_framework.authtoken.models import Token
 from rest_framework import status
 from django.contrib.auth.models import User
-from rest_framework.views import APIView"""
+from rest_framework.views import APIView
 
 
 class ApiUrlsTests(SimpleTestCase):
@@ -15,7 +15,7 @@ class ApiUrlsTests(SimpleTestCase):
         self.assertEquals(resolve(url).func.view_class, CustomerView)
 
 
-"""class CustomerAPIViewTests(APITestCase):
+class CustomerAPIViewTests(APITestCase):
     customers_url = reverse("customer")
 
     def setUp(self):
@@ -82,4 +82,3 @@ class CustomerDetailAPIViewTests(APITestCase):
     def test_delete_customer_authenticated(self):
         response = self.client.delete(self.customer_url)
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
-"""

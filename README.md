@@ -634,8 +634,261 @@ We then asset the resolved url function view_class name against the name of the 
 * To run the test  run the test command (*./manage.py test <app-name>*) with the name of  app. If you dont add the name of the app the test runner will look for all apps in the project and run the test cases if there are any.
 ```cmd
 python manage.py test api
+
+System check identified no issues (0 silenced).
+.
+----------------------------------------------------------------------
+Ran 1 test in 0.004s
+
+OK
+```
+The test successfully runs 1 test and it passed.
+* Now lets continue with djangorestframework tests.
+
+#### APITestCase
+The REST framework uses incles test case classes , that mirror the existing Django test cases classes. They include
+* APISimpleTestCase
+* APITransactionTestCase
+* APITestCase
+* APILiveServerTestCase
+
+
+```python
+from django.urls import path, reverse, include, resolve
+from django.test import SimpleTestCase
+from api.views import CustomerView
+from rest_framework.test import APITestCase, APIClient
+from rest_framework.authtoken.models import Token
+from rest_framework import status
+from django.contrib.auth.models import User
+from rest_framework.views import APIView
+
+
+class ApiUrlsTests(SimpleTestCase):
+
+    def test_get_customers_is_resolved(self):
+        url = reverse('customer')
+        self.assertEquals(resolve(url).func.view_class, CustomerView)
+
+
+class CustomerAPIViewTests(APITestCase): #new here
+    customers_url = reverse("customer")
+
+    def setUp(self):
+        self.user = User.objects.create_user(
+            username='admin', password='admin')
+        self.token = Token.objects.create(user=self.user)
+        #self.client = APIClient()
+        self.client.credentials(HTTP_AUTHORIZATION='Token ' + self.token.key)
+
+    def test_get_customers_authenticated(self):
+        response = self.client.get(self.customers_url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+    def test_get_customers_un_authenticated(self):
+        self.client.force_authenticate(user=None, token=None)
+        response = self.client.get(self.customers_url)
+        self.assertEquals(response.status_code, 401)
+
+    def test_post_customer_authenticated(self):
+        data = {
+            "title": "Mr",
+            "name": "Peter",
+            "last_name": "Parkerz",
+            "gender": "M",
+            "status": "published"
+        }
+        response = self.client.post(self.customers_url, data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(len(response.data), 8)
+        
+class CustomerDetailAPIViewTests(APITestCase):
+    customer_url = reverse('customer-detail', args=[1])
+    customers_url = reverse("customer")
+
+    def setUp(self):
+        self.user = User.objects.create_user(
+            username='admin', password='admin')
+        self.token = Token.objects.create(user=self.user)
+        #self.client = APIClient()
+        self.client.credentials(HTTP_AUTHORIZATION='Token ' + self.token.key)
+
+        # Saving customer
+        data = {
+            "title": "Mrs",
+            "name": "Johnson",
+            "last_name": "MOrisee",
+            "gender": "F",
+            "status": "published"
+        }
+        self.client.post(
+            self.customers_url, data, format='json')
+
+    def test_get_customer_autheticated(self):
+        response = self.client.get(self.customer_url)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data['name'], 'Johnson')
+
+    def test_get_customer_un_authenticated(self):
+        self.client.force_authenticate(user=None, token=None)
+        response = self.client.get(self.customer_url)
+        self.assertEqual(response.status_code, 401)
+
+    def test_delete_customer_authenticated(self):
+        response = self.client.delete(self.customer_url)
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+
 ```
 
-* Now lets continue with restframework tests.
+Alright now the code has extended a bit, but nothing to worry about :), lets break it down.
+
+#### CustomerAPIViewTests
+Now in this case we want to test the CustomerView that does our **get** all and **post** request.
+
+* Since we are now working with the database we need to extend an appropriate test case in our case an ***APITestCase***.
+```python
+class CustomerAPIViewTests(APITestCase):
+```
+* We then  use the django reverse function to get the absolute url by name "customer".
+```python
+customers_url = reverse("customer")
+```self.client.force_authenticate(user=None, token=None)
+    response = self.client.get(self.customer_url)
+    self.assertEqual(response.status_code, 401)
+
+def test_delete_customer_authenticated(self):
+    response = self.client.delete(self.customer_url)
+    self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)tion including user creation and token signing in are going to be perfomed in the setUp function.
+* The setUp method will only be run once on each test case.
+
+```python
+def setUp(self):
+    self.user = User.objects.create_user(
+        username='admin', password='admin')
+    self.token = Token.objects.create(user=self.user)
+    #self.client = APIClient()
+    self.client.credentials(HTTP_AUTHORIZATION='Token ' + self.token.key)
+```
+* Inside the function we are creating the user, and the token. The django test runner sets  up a  volatile DB on every run and tears it down after each test case, and with that in mind we dont necessarily need a ***tearDown*** function.
+
+* The **APITestCase** comes with a **client** from the ***APIClient*** class which we then use to configure our **request** Headers using the **credentials method**.
+
+* Setup the request Authorization Header with a token to the client:
+```pythonargumenttatus.HTTP_200_OK)
+```
+* Here we are making a get customers request to the /api/customers/ endpoint.
+```python
+response = self.client.get(self.customers_url)
+```
+
+* We are using assetEqual to make our declative statements, for our test.
+```python
+self.assertEqual(response.status_code, status.HTTP_200_OK)
+```
+
+* Here we are declaring /asserting that the response's status_code == 200.
+
+* Now the above test case was for an **authenticated** client , now lets test an un-authenticated client and see if we attain the desired results.
+
+```python
+ self.client.force_authenticate(user=None, token=None)
+```
+* To bypass authentication entirely for this test case we use the force_authenticate function on our **client** and assign the user or token to None.
+
+* We then assert a **401** response on the status_code.
+
+* THe post request , we are using the same client to make a post request, and assert a **201** status Created.
 
 
+#### CustomerDetailAPIViewTests
+ In this test class we are doing almost everything that we have covered above expect for a few things. Lets take a look
+
+ ```python
+customer_url = reverse('customer-detail', args=[1])
+ ```
+ You will probably notice that our reverse function is now a bit different , this is because the **customer-detail** path take an argument pk See urls.py code below:
+ ```python
+ ...
+  path('customers/<int:pk>/', api_views.CustomerDetailView.as_view(), name="customer-detail"),
+  ...
+  ```
+  So we then pass an argument in the args list, in this case we are passing a 1.
+
+  * Since we want to perfom **get**, **delete**,**put**  requests we need to pre-insert a customer  in the DB during the setUp , since the customer is going to be used by the rest of the test cases.
+* Also note that this is now a different TestCalss so we need to crete a user , token and pass the Authorization token to the client request Header.
+Pre-Inserting Customer
+```python
+self.client.post(self.customers_url, data, format='json')
+```
+
+**GET** and **DELETE** requests
+
+```python
+...
+def test_get_customer_autheticated(self):
+    response = self.client.get(self.customer_url)
+    self.assertEqual(response.status_code, 200)
+    self.assertEqual(response.data['name'], 'Johnson')
+
+def test_get_customer_un_authenticated(self):
+    self.client.force_authenticate(user=None, token=None)
+    response = self.client.get(self.customer_url)
+    self.assertEqual(response.status_code, 401)
+
+def test_delete_customer_authenticated(self):
+    response = self.client.delete(self.customer_url)
+    self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+...
+```
+In the get by id /api/customer/1 request , we are asserting that the response has  a name == 'Johnson':
+```python
+self.assertEqual(response.data['name'], 'Johnson')
+```
+
+In the delete request /api/customers/1 ,we are asserting that the response will return a 204 No content Found status_code.
+
+* Now Finally Run your tests:
+```cmd
+python manage.py test api
+
+Creating test database for alias 'default'...
+System check identified no issues (0 silenced).
+.......
+----------------------------------------------------------------------
+Ran 7 tests in 1.447s
+
+OK
+Destroying test database for alias 'default'...
+```
+
+* If you have 7 passed tests then CONGRATULATIONS you have created your REST API UNIT TESTING.
+
+* **NB** As a rule of thumb make sure you mess around with the assertions, just to make sure your tests are working as Expected.
+
+END !!
+
+* If there is anything you feel i should have covered or improve ,Please let me know in the comments section below.
+
+Thank you for taking your time in reading this article.
+
+KINDLY FORK AND STAR THE [REPO](https://github.com/nyakaz73/secure_tested_django_api) TO SUPPORT THIS PROJECT :)
+
+### Source Code Git repo
+The source code of this [repo](https://github.com/nyakaz73/secure_tested_django_api)
+### Pull Requests
+I Welcome and i encourage all Pull Requests....
+## Created and Maintained by
+* Author: [Tafadzwa Lameck Nyamukapa](https://github.com/nyakaz73) 
+* Email:  [tafadzwalnyamukapa@gmail.com]
+* Youtube Channel: [Stack{Dev}](https://www.youtube.com/channel/UCacNBWW7T2j_St593VHvulg)
+* Open for any collaborations and Remote Work!!
+* Happy Coding!!
+
+### License
+
+```
+MIT License
+
+Copyright (c) 2021 Tafadzwa Lameck Nyamukapa
+
+```
