@@ -589,3 +589,53 @@ SIMPLE_JWT = {
 
 ## 3. REST API UNIT TESTING
 
+* In this section we are going to look at how to run unit test on django restful api.
+* We are going to use the restframework **APITestCase** and the **APIClient** for our **CRUD** requests.
+
+* To begin delete the ***/api/tests.py*** file in the **api** folder.
+```cmd
+rm /api/tests.py
+```
+* Created a new folder inside the **/api** folder called tests
+```cmd
+mkdir /api/tests
+```
+* Navigate to the newly created tests folder.
+```cmd
+cd /api/tests/
+```
+* Create a test file ***test_customer_api.py***
+```cmd
+cat test_customer_api.py
+```
+* Create an __init__.py inside the same */tests* folder so that the django test runner will be able to pick our test file.
+```cmd
+cat __init__.py
+```
+
+* Now add the following snippet inside the newly created ***test_customer_api.py*** file.
+```python
+from django.urls import reverse,  resolve
+from django.test import SimpleTestCase
+from api.views import CustomerView
+class ApiUrlsTests(SimpleTestCase):
+
+    def test_get_customers_is_resolved(self):
+        url = reverse('customer')
+        self.assertEquals(resolve(url).func.view_class, CustomerView)
+```
+* Before we jump to the restframework **APITestCase** lets start with this django urls unit testing.
+* The above code simply tests the get ***/api/customers/*** url to see if it is firing the correct ViewClass.
+* The default behavior of the test utility is to find all the test cases (that is, subclasses of unittest.TestCase) in any file whose name begins with **test**
+
+Here we are using the django reverse function to get the absolute url of the path. 
+We then asset the resolved url function view_class name against the name of the Class Viwew that we want it to trigger.
+
+* To run the test  run the test command (*./manage.py test <app-name>*) with the name of  app. If you dont add the name of the app the test runner will look for all apps in the project and run the test cases if there are any.
+```cmd
+python manage.py test api
+```
+
+* Now lets continue with restframework tests.
+
+
