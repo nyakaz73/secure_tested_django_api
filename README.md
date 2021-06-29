@@ -777,7 +777,8 @@ def setUp(self):
 * The **APITestCase** comes with a **client** from the ***APIClient*** class which we then use to configure our **request** Headers using the **credentials method**.
 
 * Setup the request Authorization Header with a token to the client:
-```pythonargumenttatus.HTTP_200_OK)
+```python
+self.client.credentials(HTTP_AUTHORIZATION='Token ' + self.token.key)
 ```
 * Here we are making a get customers request to the /api/customers/ endpoint.
 
