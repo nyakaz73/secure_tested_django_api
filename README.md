@@ -757,15 +757,11 @@ Now in this case we want to test the CustomerView that does our **get** all and 
 class CustomerAPIViewTests(APITestCase):
 ```
 * We then  use the django reverse function to get the absolute url by name "customer".
+
 ```python
 customers_url = reverse("customer")
-```self.client.force_authenticate(user=None, token=None)
-    response = self.client.get(self.customer_url)
-    self.assertEqual(response.status_code, 401)
+```
 
-def test_delete_customer_authenticated(self):
-    response = self.client.delete(self.customer_url)
-    self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)tion including user creation and token signing in are going to be perfomed in the setUp function.
 * The setUp method will only be run once on each test case.
 
 ```python
@@ -784,6 +780,7 @@ def setUp(self):
 ```pythonargumenttatus.HTTP_200_OK)
 ```
 * Here we are making a get customers request to the /api/customers/ endpoint.
+
 ```python
 response = self.client.get(self.customers_url)
 ```
